@@ -46,10 +46,10 @@ public class Student {
 	private String aadhaarId;
 	
 	public String toString() {
-		// TODO Auto-generated method stub
 		return "DataObject [id=" + id + ", name=" + name + ", clas="
-		+ clas + "]";
+		+ clas + ", aadhaarId=" + aadhaarId +"]";
 	}
+	
 	public String getAadhaarId() {
 		return aadhaarId;
 	}

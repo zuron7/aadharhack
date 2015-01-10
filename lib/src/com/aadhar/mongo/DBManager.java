@@ -1,10 +1,12 @@
 package com.aadhar.mongo;
 
 import java.net.UnknownHostException;
+import java.time.Period;
 import java.time.Year;
 
 import com.aadhar.lib.Attendance;
 import com.aadhar.lib.Clas;
+import com.aadhar.lib.Schedule;
 import com.aadhar.lib.Student;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -110,6 +112,10 @@ public class DBManager {
 			} else {
 				coll = db.getCollection("attendance");
 			}
+			if (coll.getCount(obj) > 0) {
+				cli.close();
+				return;
+			}
 			coll.insert(obj, WriteConcern.ACKNOWLEDGED);
 			cli.close();
 		} catch (UnknownHostException e) {
@@ -118,7 +124,7 @@ public class DBManager {
 		}
 	}
 
-	public String getAadhaarIdFromStudentId(String studentId) {
+	public DBObject getStudentRecordFromStudentId(String studentId) {
 		try {
 			MongoClient cli = new MongoClient(this.ip, this.port);
 			DB db = cli.getDB("aadhaar");
@@ -128,21 +134,22 @@ public class DBManager {
 				return null;
 			}
 			coll = db.getCollection("student");
-			BasicDBObject obj=new BasicDBObject();
+			BasicDBObject obj = new BasicDBObject();
 			obj.append("id", studentId);
-			DBObject res=coll.findOne(obj);
-			if (res==null){
+			DBObject res = coll.findOne(obj);
+			if (res == null) {
 				cli.close();
 				return null;
-			}			
-			return res.get("aadhaarId").toString();			
+			}
+			return res;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return "";
+		return null;
 	}
-	public String getStudentIdFromAadhaarId(String aadhaarId) {
+
+	public DBObject getStudentRecordFromAadhaarId(String aadhaarId) {
 		try {
 			MongoClient cli = new MongoClient(this.ip, this.port);
 			DB db = cli.getDB("aadhaar");
@@ -152,19 +159,72 @@ public class DBManager {
 				return null;
 			}
 			coll = db.getCollection("student");
-			BasicDBObject obj=new BasicDBObject();
+			BasicDBObject obj = new BasicDBObject();
 			obj.append("aadhaarId", aadhaarId);
-			DBObject res=coll.findOne(obj);
-			if (res==null){
+			DBObject res = coll.findOne(obj);
+			if (res == null) {
 				cli.close();
 				return null;
-			}			
-			return res.get("id").toString();			
+			}
+			return res;
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return "";
+		return null;
+	}
+
+	public long getStudentAttendance(int day, int period) {
+		try {
+			MongoClient cli = new MongoClient(this.ip, this.port);
+			DB db = cli.getDB("aadhaar");
+			DBCollection coll = null;
+			if (!db.collectionExists("attendance")) {
+				cli.close();
+				return 0;
+			}
+			coll = db.getCollection("attendance");
+			BasicDBObject obj = new BasicDBObject();
+			obj.append("day", new Integer(day)).append("period",
+					new Integer(period));
+			long count = coll.getCount(obj);
+			cli.close();
+			return count;
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	public void addSchedule(Schedule s) {
+		try {
+			MongoClient cli = new MongoClient(this.ip, this.port);
+			DB db = cli.getDB("aadhaar");
+			DBCollection coll = null;
+			if (!db.collectionExists("schedule")) {
+				cli.close();
+				return;
+			}
+			coll = db.getCollection("schedule");
+			BasicDBObject obj = new BasicDBObject();
+			obj.append("day", new Integer(s.getDay())).append("period",
+					new Integer(s.getPeriod()));
+			BasicDBObject obju = new BasicDBObject();
+			obju.append("day", new Integer(s.getDay()))
+					.append("period", new Integer(s.getPeriod()))
+					.append("subject", new Integer(s.getSubject()));
+
+			if (coll.getCount(obj) > 0) {
+				coll.update(obj, obju);
+			} else {
+				coll.insert(obju, WriteConcern.ACKNOWLEDGED);
+			}
+			cli.close();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
