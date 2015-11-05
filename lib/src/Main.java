@@ -12,7 +12,7 @@ public class Main {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Student s = new Student(UUID.randomUUID().toString(), "SomeOne", "1",
-				"824896510764");
+				"enter number here");
 		DBManager dbmanager = new DBManager();
 		dbmanager.setIp("192.168.146.134");
 		dbmanager.setPort(27017);
